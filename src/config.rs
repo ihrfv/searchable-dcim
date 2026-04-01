@@ -1,17 +1,17 @@
-use std::env::args;
-
 pub struct Config {
     dcim_path: String,
 }
 
 impl Config {
     pub fn build() -> Result<Config, &'static str> {
-        let args: Vec<String> = args().collect();
-        if args.len() != 2 {
-            return Err("The command line arguments should contain video folder");
-        }
+        let mut args = std::env::args();
+        args.next();
 
-        let dcim_path = args[1].clone();
+        let dcim_path = match args.next() {
+            Some(path) => path,
+            None => return Err("Didn't get a dcim folder path"),
+        };
+
         Ok(Config { dcim_path })
     }
 
