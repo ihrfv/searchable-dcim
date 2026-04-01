@@ -1,14 +1,30 @@
-pub fn add(left: u64, right: u64) -> u64 {
-    left + right
+#![allow(dead_code)]
+
+pub mod config;
+pub use config::Config;
+
+use std::error::Error;
+use std::fs::{self, DirEntry};
+
+pub fn index_videos(config: Config) -> Result<(), Box<dyn Error>> {
+    let dcim_path = config.get_dcim_path();
+    if let Ok(entries) = fs::read_dir(&dcim_path) {
+        println!("Here are the files:");
+        for entry in entries {
+            let entry = entry?;
+            let path = entry.path();
+            if path.is_dir() {
+                println!("We've got a folder: {:?}", &path);
+                todo!();
+            } else {
+                process_video(&entry);
+            }
+        }
+    }
+
+    Ok(())
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
-    }
+fn process_video(file: &DirEntry) {
+    println!("Processing file: {:?}", &file.path());
 }
