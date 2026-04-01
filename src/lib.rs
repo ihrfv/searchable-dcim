@@ -16,11 +16,14 @@ const INDEX_TMP_SUBPATH: &'static str = ".index_tmp";
 const VALID_VIDEO_EXTENSIONS: [&'static str; 6] = ["mp4", "mov", "mkv", "avi", "webm", "m4v"];
 
 pub fn index_videos(config: Config) -> Result<(), Box<dyn Error>> {
-    let dcim_path = config.get_dcim_path();
-    let entries = fs::read_dir(&dcim_path)?;
+    index_videos_in_folder(config.get_dcim_path())
+}
+
+fn index_videos_in_folder(folder_path: &str) -> Result<(), Box<dyn Error>> {
+    let entries = fs::read_dir(folder_path)?;
 
     // creating a temporary folder
-    let index_tmp_path: PathBuf = [dcim_path, INDEX_TMP_SUBPATH].iter().collect();
+    let index_tmp_path: PathBuf = [folder_path, INDEX_TMP_SUBPATH].iter().collect();
     std::fs::create_dir_all(&index_tmp_path)?;
     let index_tmp_path = index_tmp_path.canonicalize()?;
 
@@ -33,7 +36,7 @@ pub fn index_videos(config: Config) -> Result<(), Box<dyn Error>> {
             continue;
         } else if path.is_dir() {
             println!("We've got a folder: {:?}", &path);
-            todo!("Add iteration of subdirectories");
+            index_videos_in_folder(path.to_str().unwrap())?;
         } else if is_video(&path) {
             process_video(&index_tmp_path.as_path(), &path)?;
         } else {
@@ -49,8 +52,10 @@ fn is_video(file_path: &Path) -> bool {
         .extension()
         .iter()
         .flat_map(|e| e.to_str())
-        .any(|ext| VALID_VIDEO_EXTENSIONS.contains(&ext))
+        .map(|e| e.to_ascii_lowercase())
+        .any(|ext| VALID_VIDEO_EXTENSIONS.contains(&ext.as_str()))
 }
+
 fn process_video(index_tmp_path: &Path, video_path: &Path) -> Result<(), Box<dyn Error>> {
     println!("Processing file: {:?}", video_path);
     let input_video_path = video_path.to_str().unwrap();
