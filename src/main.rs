@@ -1,4 +1,4 @@
-use searchable_dcim::Config;
+use searchable_dcim::{Config, DcimIndexer};
 use std::process;
 
 fn main() {
@@ -12,7 +12,7 @@ fn main() {
         config.get_dcim_path()
     );
 
-    if let Err(err) = searchable_dcim::index_videos(config) {
+    if let Err(err) = DcimIndexer::new(&config).index_videos() {
         eprintln!("Error during indexing files: {err}");
         process::exit(0);
     }
