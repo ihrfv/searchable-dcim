@@ -12,8 +12,8 @@ use std::{
     path::Path,
 };
 
-const INDEX_TMP_SUBPATH: &'static str = ".index_tmp";
-const VALID_VIDEO_EXTENSIONS: [&'static str; 6] = ["mp4", "mov", "mkv", "avi", "webm", "m4v"];
+const INDEX_TMP_SUBPATH: &str = ".index_tmp";
+const VALID_VIDEO_EXTENSIONS: [&str; 6] = ["mp4", "mov", "mkv", "avi", "webm", "m4v"];
 
 pub fn index_videos(config: Config) -> Result<(), Box<dyn Error>> {
     index_videos_in_folder(config.get_dcim_path())
@@ -38,7 +38,7 @@ fn index_videos_in_folder(folder_path: &str) -> Result<(), Box<dyn Error>> {
             println!("We've got a folder: {:?}", &path);
             index_videos_in_folder(path.to_str().unwrap())?;
         } else if is_video(&path) {
-            process_video(&index_tmp_path.as_path(), &path)?;
+            process_video(&index_tmp_path, &path)?;
         } else {
             println!("Skipping: {:?}", path);
         }
@@ -87,10 +87,7 @@ fn extract_audio(input_video_path: &str, output_audio_path: &str) -> std::io::Re
         .status()?;
 
     if !status.success() {
-        return Err(std::io::Error::new(
-            std::io::ErrorKind::Other,
-            "ffmpeg failed",
-        ));
+        return Err(std::io::Error::other("ffmpeg failed"));
     }
     Ok(())
 }
