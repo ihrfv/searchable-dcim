@@ -32,7 +32,7 @@ fn index_videos_in_folder(folder_path: &str) -> Result<(), Box<dyn Error>> {
     std::fs::create_dir_all(&index_tmp_path)?;
     let index_tmp_path = index_tmp_path.canonicalize()?;
 
-    println!("Here are the files:");
+    tracing::info!("Processing videos in the folder: {folder_path:?}");
     for entry in entries {
         let entry = entry?;
         let path = entry.path().canonicalize()?;
@@ -40,12 +40,12 @@ fn index_videos_in_folder(folder_path: &str) -> Result<(), Box<dyn Error>> {
         if path == index_tmp_path {
             continue;
         } else if path.is_dir() {
-            println!("We've got a folder: {:?}", &path);
+            tracing::info!(folder = ?path);
             index_videos_in_folder(path.to_str().unwrap())?;
         } else if is_video(&path) {
             process_video(&index_tmp_path, &path)?;
         } else {
-            println!("Skipping: {:?}", path);
+            tracing::info!("Skipping: {:?}", path);
         }
     }
 
@@ -62,7 +62,7 @@ fn is_video(file_path: &Path) -> bool {
 }
 
 fn process_video(index_tmp_path: &Path, video_path: &Path) -> Result<(), Box<dyn Error>> {
-    println!("Processing file: {:?}", video_path);
+    tracing::info!("Processing file: {video_path:?}");
     let input_video_path = video_path.to_str().unwrap();
     let video_file_stem = video_path.file_stem().unwrap().to_str().unwrap();
     let output_audio_path = {
@@ -72,6 +72,12 @@ fn process_video(index_tmp_path: &Path, video_path: &Path) -> Result<(), Box<dyn
         path_buf.to_str().unwrap().to_string()
     };
     extract_audio(input_video_path, &output_audio_path)?;
+    transcribe_audio(&output_audio_path);
+    Ok(())
+}
+
+fn transcribe_audio(audio_path: &str) -> std::io::Result<()> {
+    // TODO
     Ok(())
 }
 
